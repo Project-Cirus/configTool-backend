@@ -2,12 +2,12 @@
 	"development": {
         "config_id": "development",
         "port": 3000,
-        "repo": "http://acid-design.at:2443/fst/cloud.git",
+        "repo": "https://github.com/Project-Cirus/cloud.git",
         "temp_path": "/generated/temp",
         "output_path": "/generated"
     },
     "production": {
         "config_id": "production",
-        "port": 80
+        "port": 443
     }
 }
