@@ -49,20 +49,18 @@ class Generator {
 	 * @return {string} path of zip file
 	 */
 	async generate() {
-		return await this.cloneTemplate()
-
-		//Success
-		.then(() => {
+		try {
+			await this.cloneTemplate();
 			this.getFilesList();
-			this.replaceVariables();
+			await this.replaceVariables();
 			const zipPath = this.zipDirectory();
 
 			return zipPath;
-
-		// Failure		
-		}, err => {
+		}
+		catch(err) {
+			console.log("ERROR:", err)
 			return err;
-		});
+		}
 	}
 
 	/**
@@ -102,9 +100,7 @@ class Generator {
 	 * This function calls all files in the repo
 	 */
 	replaceVariables() {
-		for (let i = 0, len = this.files.length; i < len; i++) {
-			this.replaceInFile(this.files[i]);
-		}
+		return Promise.all(this.files.map((file) => this.replaceInFile(file)));
 	}
 
 	/** 
@@ -113,30 +109,38 @@ class Generator {
 	 */
 	replaceInFile(path) {
 
-		if(fs.lstatSync(path).isDirectory()){
-			return false;
-		}
-
-
-		fs.readFile(path, 'utf8', (err, data) => {
-		 	if (err) {
-		    	return console.log(err);
-		 	}
-
-		 	const keys = Object.keys(this.replacements);
-			for (let i = 0, len = keys.length; i < len; i++) {
-				const key = keys[i];
-
-				// console.log(`Replacing ${key} with ${this.replacements[key]}`);
-				data = data.replace(`{{${key}}}`, this.replacements[key]);
+		return new Promise((resolve, reject) => {
+			if(fs.lstatSync(path).isDirectory()){
+				return resolve();
 			}
 
-			if(path.indexOf('.env') >= 0){
-				// console.log(data);
-			}
+			fs.readFile(path, 'utf8', (err, data) => {
+				// console.log("\n\n\nFILE:" + path + "\n")
 
-			fs.writeFile(path, data, 'utf8', err => {
-			 if (err) return console.log(err);
+				if (err) {
+					console.log(err);
+					return reject();
+				}
+
+				const keys = Object.keys(this.replacements);
+				for (let i = 0, len = keys.length; i < len; i++) {
+					const key = keys[i];
+
+					// console.log(`Replacing ${key} with ${this.replacements[key]}`);
+					data = data.replace(`{{${key}}}`, this.replacements[key]);
+				}
+
+				if(path.indexOf('.env') >= 0){
+					// console.log(data);
+				}
+
+				fs.writeFile(path, data, 'utf8', err => {
+					if (err) {
+						console.log(err);
+						return reject();
+					}
+					return resolve();
+				});
 			});
 		});
 	}
