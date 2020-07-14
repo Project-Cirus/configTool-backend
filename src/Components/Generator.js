@@ -125,9 +125,8 @@ class Generator {
 				const keys = Object.keys(this.replacements);
 				for (let i = 0, len = keys.length; i < len; i++) {
 					const key = keys[i];
-
 					// console.log(`Replacing ${key} with ${this.replacements[key]}`);
-					data = data.replace(`{{${key}}}`, this.replacements[key]);
+					data = data.replace(new RegExp(`{{${key}}}`, "g"), this.replacements[key]);
 				}
 
 				if(path.indexOf('.env') >= 0){
