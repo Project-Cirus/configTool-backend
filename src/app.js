@@ -15,6 +15,9 @@
  * along with Project Cirus. If not, see <http://www.gnu.org/licenses/>.
  */
 
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const express = require('express');
 var cors = require('cors');
 const app = express();
@@ -28,6 +31,7 @@ app.use(cors());
 app.use(express.json()) 
 app.use(express.urlencoded({ extended: true }))
 app.use('/generated', express.static('generated'));
+app.use('/.well-known', express.static('.well-known'));
 
 
 app.get('/info', (req, res) => {
@@ -62,6 +66,10 @@ app.post('/generate', (req, res) => {
 });
 
 
-app.listen(config.port, function () {
-  console.log(`Configuration tool backend listening on port ${config.port}!`);
+https.createServer({
+    key: fs.readFileSync('/etc/letsencrypt/live/configtool.project-cirus.com/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/configtool.project-cirus.com/fullchain.pem'),
+}, app)
+.listen(config.port, function() {
+	  console.log(`Configuration tool backend listening on port ${config.port}!`);
 });
