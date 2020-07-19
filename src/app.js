@@ -65,11 +65,18 @@ app.post('/generate', (req, res) => {
 	});	
 });
 
+let server = null;
 
-https.createServer({
-    key: fs.readFileSync('/etc/letsencrypt/live/configtool.project-cirus.com/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/configtool.project-cirus.com/fullchain.pem'),
-}, app)
-.listen(config.port, function() {
+if(config.port === 443){
+	server = https.createServer({
+	    key: fs.readFileSync(config.private_key_path),
+	    cert: fs.readFileSync(config.cert_path),
+	}, app);
+	
+} else {
+	server = app;
+}
+
+server.listen(config.port, function() {
 	  console.log(`Configuration tool backend listening on port ${config.port}!`);
 });

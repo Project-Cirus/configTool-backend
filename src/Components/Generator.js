@@ -55,6 +55,8 @@ class Generator {
 		.then(() => {
 			this.getFilesList();
 			this.replaceVariables();
+
+
 			const zipPath = this.zipDirectory();
 
 			return zipPath;
@@ -118,27 +120,22 @@ class Generator {
 		}
 
 
-		fs.readFile(path, 'utf8', (err, data) => {
-		 	if (err) {
-		    	return console.log(err);
-		 	}
+		let data = fs.readFileSync(path, 'utf8');
 
-		 	const keys = Object.keys(this.replacements);
-			for (let i = 0, len = keys.length; i < len; i++) {
-				const key = keys[i];
 
-				// console.log(`Replacing ${key} with ${this.replacements[key]}`);
-				data = data.replace(`{{${key}}}`, this.replacements[key]);
-			}
+	 	const keys = Object.keys(this.replacements);
+		for (let i = 0, len = keys.length; i < len; i++) {
+			const key = keys[i];
 
-			if(path.indexOf('.env') >= 0){
-				// console.log(data);
-			}
+			// console.log(`Replacing ${key} with ${this.replacements[key]}`);
+			data = data.replace(`{{${key}}}`, this.replacements[key]);
+		}
 
-			fs.writeFile(path, data, 'utf8', err => {
-			 if (err) return console.log(err);
-			});
-		});
+		if(path.indexOf('.env') >= 0){
+			// console.log(data);
+		}
+
+		fs.writeFileSync(path, data, 'utf8');
 	}
 
 	/**

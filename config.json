@@ -8,6 +8,8 @@
     },
     "production": {
         "config_id": "production",
-        "port": 443
+        "port": 443,
+        "private_key_path": "/etc/letsencrypt/live/configtool.project-cirus.com/privkey.pem",
+        "cert_path": "/etc/letsencrypt/live/configtool.project-cirus.com/fullchain.pem"
     }
 }
