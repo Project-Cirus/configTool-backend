@@ -128,12 +128,14 @@ class Generator {
 			const key = keys[i];
 
 			// console.log(`Replacing ${key} with ${this.replacements[key]}`);
-			data = data.replace(`{{${key}}}`, this.replacements[key]);
+			data = data.replace(new RegExp(`{{${key}}}`, 'gi'), this.replacements[key]);
+
+			if(path.indexOf('mailu.env') >= 0){
+				console.log(key, this.replacements[key]);
+			}
 		}
 
-		if(path.indexOf('.env') >= 0){
-			// console.log(data);
-		}
+
 
 		fs.writeFileSync(path, data, 'utf8');
 	}
