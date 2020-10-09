@@ -15,7 +15,7 @@
  * along with Project Cirus. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const AdmZip = require('adm-zip');
+const tar = require('tar');
 const fs = require('fs');
 
 /**
@@ -23,8 +23,9 @@ const fs = require('fs');
  */
 class Zip {
 
-	constructor() {
-		this.zip = new AdmZip();
+	constructor(workingDir) {
+		this.filesForZip = [];
+		this.workingDir = workingDir;
 	}
 
 	/**
@@ -35,19 +36,19 @@ class Zip {
 	addFiles(files){
 
 		for (let i = 0, len = files.length; i < len; i++) {
-
+			
 			const path = files[i];
-
+			
 			if(fs.lstatSync(path).isDirectory()){
 				continue;
 			}
-
-			this.zip.addLocalFile(path);
+			
+			this.filesForZip.push(path);
 		}
 	}
 
 	addFolder(path){
-		this.zip.addLocalFolder(path, '');
+		this.filesForZip.push(path);
 	}
 
 	/**
@@ -55,9 +56,13 @@ class Zip {
 	 *
 	 * @param {string} Path of the zip to create
      */
-	createZip(path){
-		console.log("Writing zip to: "+path);
-		this.zip.writeZip(path);
+	async createZip(path){		
+		await tar.c({
+			gzip: true,
+			file: path,
+			cwd: this.workingDir,
+		}, this.filesForZip);
+
 	}
 }
 

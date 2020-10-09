@@ -3,6 +3,7 @@
         "config_id": "development",
         "port": 3000,
         "repo": "https://github.com/Project-Cirus/cloud.git",
+        "branch": "master",
         "temp_path": "/generated/temp",
         "output_path": "/generated"
     },
