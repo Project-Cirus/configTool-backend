@@ -23,6 +23,8 @@ const { spawn } = require('child_process');
 const config = require('../config'); 
 const glob = require('glob');
 const Zip = require('./Zip');
+var pathResolver = require("path");
+
 
 
 /**
@@ -40,6 +42,7 @@ class Generator {
 		this.uuid = uuid.v4();
 		this.files = [];
 		this.path = null;
+		this.workingDir = null;
 		this.replacements = replacements;
 	}
 
@@ -53,7 +56,7 @@ class Generator {
 			await this.cloneTemplate();
 			this.getFilesList();
 			await this.replaceVariables();
-			const zipPath = this.zipDirectory();
+			const zipPath = await this.zipDirectory();
 
 			return zipPath;
 		}
@@ -66,11 +69,11 @@ class Generator {
 	/**
 	 * Use glob to find all files
 	 */
-	getFilesList() {
-		this.path = `${__dirname}/../..${config.temp_path}/${this.uuid}`;
+	getFilesList() {		
+		this.path = pathResolver.join(__dirname, '../../', `${config.temp_path}/${this.uuid}`);
+		this.workingDir = pathResolver.join(__dirname, '../../', config.temp_path);
 		this.files = glob.sync(`${this.path}/**/*`);
-		this.files.push(glob.sync(`${this.path}/**/.env`)[0]);
-		console.log(this.files);
+		this.files.push(glob.sync(`${this.path}/**/.env`)[0]);		
 	}
 
 	/**
@@ -81,6 +84,8 @@ class Generator {
 			const child = spawn('git', [
 					'clone',
 					'--depth=1',
+					'--branch',
+					config.branch,
 					config.repo,
 					`.${config.temp_path}/${this.uuid}`
 				]);
@@ -114,8 +119,7 @@ class Generator {
 				return resolve();
 			}
 
-			fs.readFile(path, 'utf8', (err, data) => {
-				// console.log("\n\n\nFILE:" + path + "\n")
+			fs.readFile(path, 'utf8', (err, data) => {			
 
 				if (err) {
 					console.log(err);
@@ -124,13 +128,8 @@ class Generator {
 
 				const keys = Object.keys(this.replacements);
 				for (let i = 0, len = keys.length; i < len; i++) {
-					const key = keys[i];
-					// console.log(`Replacing ${key} with ${this.replacements[key]}`);
+					const key = keys[i];					
 					data = data.replace(new RegExp(`{{${key}}}`, "g"), this.replacements[key]);
-				}
-
-				if(path.indexOf('.env') >= 0){
-					// console.log(data);
 				}
 
 				fs.writeFile(path, data, 'utf8', err => {
@@ -149,15 +148,13 @@ class Generator {
 	 *
 	 * @return {string} Relative Path to generated zip-file
 	 */
-	zipDirectory() {
+	async zipDirectory() {
+		const zipPath = pathResolver.join(config.output_path, this.uuid +'.tar.gz')
+		const fullPath = pathResolver.join(__dirname, '../../', zipPath);
 
-		const zipPath = `${config.output_path}/${this.uuid}.zip`;
-		const fullPath = `${__dirname}/../..${zipPath}`;
-
-		const zip = new Zip();
-		// zip.addFiles(this.files);
-		zip.addFolder(this.path);
-		zip.createZip(fullPath);
+		const zip = new Zip(this.workingDir);
+		zip.addFolder(this.uuid);
+		await zip.createZip(fullPath);
 
 		return zipPath;
 	}
