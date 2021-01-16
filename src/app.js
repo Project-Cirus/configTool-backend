@@ -32,6 +32,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/generated', express.static('generated'));
 app.use('/.well-known', express.static('.well-known'));
+app.use('/static', express.static('static'));
+
 
 
 app.get('/info', (req, res) => {
@@ -63,6 +65,10 @@ app.post('/generate', (req, res) => {
 			'zipPath': zipPath
 		}); 
 	});	
+});
+
+app.get('/', (req, res) => {
+	res.redirect('/static')
 });
 
 let server = null;
